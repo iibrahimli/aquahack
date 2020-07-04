@@ -1,5 +1,7 @@
 import numpy as np
 import pandas as pd
+from datetime import datetime
+import dateutil.parser
 from typing import Optional, List
 from fastapi import FastAPI
 from pydantic import BaseModel
@@ -17,11 +19,20 @@ class Heartbeat(BaseModel):
     wind_speed:    List[float]
     humidity:      List[float]
     precip:        List[float]
-    # soil_moisture: List[float]
+    # soil_moisture: List[float]\
+
+
+class UnknownStationError(Exception):
+    def __init__(self, station_id):
+        self.station_id = station_id
+        self.message = f"unknown station id: {station_id}"
+        super().__init__(self.message)
 
 
 def get_station_loc(station_id):
     stations_df = pd.read_csv("../data/stations.csv")
+    if stations_df['id'].isin([station_id]).any() is False:
+        raise UnknownStationError(station_id)
     lat = stations_df.loc[stations_df['id'] == station_id, 'lat'].item()
     lon = stations_df.loc[stations_df['id'] == station_id, 'lon'].item()
     alt = stations_df.loc[stations_df['id'] == station_id, 'alt'].item()
@@ -35,9 +46,11 @@ def read_item(hb: Heartbeat):
         lat, _, alt = get_station_loc(hb.station_id)
 
         # parse datetime
-        day = 6
-        month = 7
-        year = 2020
+        # dt = datetime.strptime(hb.datetime, '%Y-%m-%dT%H:%M:%S.%f')
+        dt = dateutil.parser.isoparse(hb.datetime)
+        day = dt.day
+        month = dt.month
+        year = dt.year
 
         eto = compute_eto(
             day        = day,
@@ -50,9 +63,9 @@ def read_item(hb: Heartbeat):
             humidity   = hb.humidity
         )
     except Exception as e:
-        print(e)
         return {
-            "success": False
+            "success": False,
+            "error": str(e)
         }
 
     return {
