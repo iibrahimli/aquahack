@@ -1,4 +1,5 @@
-import uuid 
+import uuid
+import base64
 import datetime
 from os.path import join
 import string
@@ -21,8 +22,6 @@ MEASUREMENT_LABELS = [
     'wind speed (m/s)',
     'humidity (%)',
     'precipitation (mm)',
-    'sv pressure (kPa)',        # saturation vapor pressure
-    'solar radiation (W/m^2)',
     'soil moisture (%)',
 ]
 N_SENSORS = len(MEASUREMENT_LABELS)
@@ -31,26 +30,20 @@ MEASUREMENT_MEANS = [
     3,    # wind speed
     60,   # humidity
     0,    # precipitation
-    1,    # sv pressure
-    11,   # solar radiation
     32,   # soil moisture
 ]
 MEASUREMENT_STDS = [
-    5,    # temperature
+    7,    # temperature
     6,    # wind speed
-    12,   # humidity
+    7,    # humidity
     3,    # precipitation
-    0.1,  # sv pressure
-    2,    # solar radiation
-    10,   # soil moisture    
+    7,    # soil moisture    
 ]
 MEASUREMENT_LIMITS = [
     (-100, 100),  # temperature
     (0, None),    # wind speed
     (0, 100),     # humidity
     (0, None),    # precipitation
-    (0, None),    # sv pressure
-    (0, None),    # solar radiation
     (0, 100),     # soil moisture
 ]
 
@@ -146,6 +139,22 @@ def get_stations_avg(stations_df, stations_data):
     return means_df
 
 
+def get_table_download_link(df):
+    """
+    Generates a link allowing the data in a given panda dataframe to be downloaded
+    Args:
+        df (dataframe)
+    
+    Returns:
+        href string
+    """
+
+    csv = df.to_csv(index=False)
+    b64 = base64.b64encode(csv.encode()).decode()
+    href = f'<a href="data:file/csv;base64,{b64}">Download CSV file</a>'
+    return href
+
+
 # ============= generate fake data =============
 
 n_stations = 12
@@ -177,10 +186,33 @@ station_avgs = get_stations_avg(stations_df, stations_data)
 # ============= visualize =============
 
 
-st.title("Aquahack Demo")
-st.sidebar.title("Selected Region")
-st.markdown("Text 1")
-st.sidebar.markdown("Text 2")
+st.title("Satet Demo")
+st.markdown("This is a prototype of the Satet agricultural data collection "
+            "platform. Each deployed station is identified by a unique "
+            "alphanumeric ID. Stations regularly submit meteorological "
+            "measurements in an automated fashion.")
+st.markdown("You can use the sidebar on the left to download the data for "
+            "any station shown here.")
+
+
+# sidebar - import/export
+st.sidebar.title("Data")
+st.sidebar.markdown("You can import or export the data as CSV. "
+                    "Choose a station, click 'Export as CSV' "
+                    "and a download link will appear")
+export_station = st.sidebar.selectbox(
+    "Choose a station to export",
+    options=list(range(n_stations)),
+    format_func=lambda idx:
+        f"{stations_df.loc[idx, 'id']} ({stations_df.loc[idx, 'region']})"
+)
+selected_station_id = stations_df.loc[export_station, 'id']
+selected_station_df = stations_data[selected_station_id]
+
+if st.sidebar.button("Export as CSV"):
+    st.sidebar.markdown(get_table_download_link(selected_station_df),
+                           unsafe_allow_html=True)
+
 
 # map with stations
 st.header("Deployed stations")
@@ -210,15 +242,15 @@ st.dataframe(
 # past data plot
 st.header("Past data")
 
-# select region
-selected_region_index = st.selectbox(
+# select station
+selected_station_index = st.selectbox(
     "Choose a station",
     options=list(range(n_stations)),
     format_func=lambda idx:
         f"{stations_df.loc[idx, 'id']} ({stations_df.loc[idx, 'region']})"
 )
-selected_region_id = stations_df.loc[selected_region_index, 'id']
-selected_region_df = stations_data[selected_region_id]
+selected_station_id = stations_df.loc[selected_station_index, 'id']
+selected_station_df = stations_data[selected_station_id]
 
 # select sensors
 selected_sensors = st.multiselect(
@@ -232,14 +264,14 @@ if not selected_sensors:
 # select datetime range
 dt_range = st.date_input(
     "Select date range to plot",
-    value=[selected_region_df['dt'].min(), selected_region_df['dt'].max()],
-    min_value=selected_region_df['dt'].min(),
-    max_value=selected_region_df['dt'].max()
+    value=[selected_station_df['dt'].min(), selected_station_df['dt'].max()],
+    min_value=selected_station_df['dt'].min(),
+    max_value=selected_station_df['dt'].max()
 )
 
 past_chart = st.empty()
 
-past_df = selected_region_df[['dt'] + selected_sensors].set_index('dt')
+past_df = selected_station_df[['dt'] + selected_sensors].set_index('dt')
 
 dt_range = list(dt_range)
 if len(dt_range) < 2:
