@@ -23,7 +23,7 @@ class Heartbeat(BaseModel):
 
 
 class UnknownStationError(Exception):
-    def __init__(self, station_id):
+    def __init__(self, station_id: str):
         self.station_id = station_id
         self.message = f"unknown station id: {station_id}"
         super().__init__(self.message)
@@ -31,7 +31,7 @@ class UnknownStationError(Exception):
 
 def get_station_loc(station_id):
     stations_df = pd.read_csv("../data/stations.csv")
-    if stations_df['id'].isin([station_id]).any() is False:
+    if bool(stations_df['id'].isin([station_id]).any()) is False:
         raise UnknownStationError(station_id)
     lat = stations_df.loc[stations_df['id'] == station_id, 'lat'].item()
     lon = stations_df.loc[stations_df['id'] == station_id, 'lon'].item()
@@ -40,7 +40,7 @@ def get_station_loc(station_id):
 
 
 @app.post("/api/add")
-def read_item(hb: Heartbeat):
+async def add(hb: Heartbeat):
 
     try:
         lat, _, alt = get_station_loc(hb.station_id)

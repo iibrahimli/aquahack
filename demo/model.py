@@ -104,7 +104,7 @@ def compute_eto(day,
     w_s = np.arccos(-np.tan(latitude_rad) * np.tan(sigma))
     daylight_hours = (24 / np.pi) * w_s
     R_a = ((24 * 60) / np.pi) * 0.0820 * d_r \
-          * (w_s * np.sin(latitude_rad) * np.sin(sigma) \
+           * (w_s * np.sin(latitude_rad) * np.sin(sigma) \
              + np.cos(latitude_rad) * np.cos(sigma) * np.sin(w_s))
     R_s = (0.25 + 0.50 * sunshine_hours / daylight_hours) * R_a
     R_so = (0.75 + 2 * 1e-5 * altitude) * R_a
