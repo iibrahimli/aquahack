@@ -1,127 +1,124 @@
 import numpy as np
 
 
-# def compute_eto(temp,
-#                 wind_speed,
-#                 humidity,
-#                 precip,
-#                 solar_rad):
-#     """
-#     Compute reference evapotranspiration
-#     http://www.fao.org/3/x0490e/x0490e08.htm
-
-#     Args:
-#         temp ([float]): Temperature (C)
-#         wind_speed ([float]): Wind speed (m/s)
-#         humidity ([float]): Humidity (%)
-#         precip ([float]): Precipitation (mm/hour)
-    
-#     Returns:
-#         float: ETo (mm/hour)
-#     """
-
-#     temp       = np.array(temp)
-#     wind_speed = np.array(wind_speed)
-#     humidity   = np.array(humidity)
-#     precip     = np.array(precip)
-#     solar_rad  = np.array(solar_rad)
-
-#     mean_temp = temp.mean()
-#     mean_wind_speed = wind_speed.mean()
-#     # Net solar radiation (W/m^2)
-#     # https://solrad-net.gsfc.nasa.gov/cgi-bin/type_one_station_flux?site=Barcelona&nachal=0&year=27&month=6&day=3&aero_water=0&level=1&if_day=0&shef_code=P&year_or_month=0
-#     mean_solar_rad = solar_rad.mean()
-    
-#     # psychrometry constant at sea level (converted to kPa/C)
-#     # http://ponce.sdsu.edu/psychrometric_constant.html
-#     gamma = 0.0655
-
-#     # saturated vapor pressure (converted to kPa)
-#     # https://www.weather.gov/media/epz/wxcalc/vaporPressure.pdf
-#     sv_pressure = 0.1 * 6.11 * 10**((7.5 * temp) / (237.3 + temp))
-
-#     # http://www.fao.org/3/X0490E/x0490e07.htm
-#     min_temp_idx, max_temp_idx = temp.argmin(), temp.argmax()
-#     mean_sv_pressure = (sv_pressure[min_temp_idx] + sv_pressure[max_temp_idx]) / 2
-
-#     # slope of sv pressure - temp curve (kPa/C)
-#     # http://www.fao.org/3/X0490E/x0490e0k.htm
-#     mean_sv_slope = (4098 * mean_sv_pressure) / (mean_temp + 237.3)**2
-
-#     eto = (0.408 * mean_sv_slope * solar_rad \
-#            + gamma * (900 / mean_temp + 273.3) \
-#              * mean_wind_speed * mean_sv_pressure) \
-#           / (mean_sv_slope + gamma * (1 + 0.34 * mean_wind_speed))
-
-#     print(eto)
-
-#     return float(eto)
-
-
-def compute_eto(temp,
+def compute_eto(day,
+                month,
+                year,
+                latitude,
                 altitude,
+                temp,
                 wind_speed,
-                humidity,
-                precip,
-                solar_rad):
+                humidity):
     """
     Compute reference evapotranspiration
-    http://www.fao.org/3/x0490e/x0490e08.htm
-    EXAMPLE 18. Determination of ETo with daily data
+
+     * ET calculation procedure: http://www.fao.org/3/x0490e/x0490e08.htm
+     * Equations:                http://www.fao.org/3/x0490e/x0490e07.htm
+     * Meteorological tables:    http://www.fao.org/3/x0490e/x0490e0j.htm
 
     Args:
-        temp ([float]): Temperature (C)
+        day (int): Day of month
+        month (int): Month
+        year (int): Year
+        latitude (float): Latitude (deg)
         altitude (float): Altitude of the station (m)
+        temp ([float]): Temperature (C)
         wind_speed ([float]): Wind speed (m/s)
         humidity ([float]): Humidity (%)
-        precip ([float]): Precipitation (mm/hour)
     
     Returns:
         float: ETo (mm/day)
     """
 
+    """
+    test: (Brussels, 100 m, 6 July 2019, sunshine_hours = 9.25)
+    {
+        "station_id": "string",
+        "datetime": "string",
+        "temp": [
+            12.3, 21.5
+        ],
+        "wind_speed": [
+            2.77778, 2.77778
+        ],
+        "humidity": [
+            63, 84
+        ],
+        "precip": [
+            0, 0, 0
+        ],
+        "solar_rad": [
+            0, 0, 0
+        ],
+        "soil_moisture": [
+            0, 0, 0
+        ]
+    }
+    result: 3.8752704372798217
+    """
+
+    sunshine_hours = 9.25     # hours
+    pressure       = 101.592  # kPa
+    gamma          = 0.067    # kPa/C
+
     temp       = np.array(temp)
     wind_speed = np.array(wind_speed)
     humidity   = np.array(humidity)
-    precip     = np.array(precip)
-    solar_rad  = np.array(solar_rad)
 
-    mean_temp, min_temp, max_temp = temp.mean(), temp.min(), temp.max()
-    min_humidity, max_humidity = humidity.min(), humidity.max()
-    mean_wind_speed = wind_speed.mean()
-    hours_of_sun = 10   # hours
-    pressure = 101.592  # kPa
-    sv_slope = 0.122    # kPa/C
-    
+    mean_temp    = temp.mean()
+    min_temp     = temp.min()
+    max_temp     = temp.max()
+    min_humidity = humidity.min()
+    max_humidity = humidity.max()
 
-    
-
-    # Net solar radiation (W/m^2)
-    # https://solrad-net.gsfc.nasa.gov/cgi-bin/type_one_station_flux?site=Barcelona&nachal=0&year=27&month=6&day=3&aero_water=0&level=1&if_day=0&shef_code=P&year_or_month=0
-    mean_solar_rad = solar_rad.mean()
-    
-    # psychrometry constant at sea level (converted to kPa/C)
-    # http://ponce.sdsu.edu/psychrometric_constant.html
-    gamma = 0.0655
+    # convert wind speed to measured at 2 m
+    wind_measure_height = 10
+    mean_wind_speed = wind_speed.mean() * 4.87 \
+                      / np.log(67.8 * wind_measure_height - 5.42)
 
     # saturated vapor pressure (converted to kPa)
-    # https://www.weather.gov/media/epz/wxcalc/vaporPressure.pdf
-    sv_pressure = 0.1 * 6.11 * 10**((7.5 * temp) / (237.3 + temp))
-
-    # http://www.fao.org/3/X0490E/x0490e07.htm
+    sv_pressure = 0.6108 * np.exp((17.27 * temp) / (237.3 + temp))
     min_temp_idx, max_temp_idx = temp.argmin(), temp.argmax()
-    mean_sv_pressure = (sv_pressure[min_temp_idx] + sv_pressure[max_temp_idx]) / 2
+    sv_pressure_at_tmin = sv_pressure[min_temp_idx]
+    sv_pressure_at_tmax = sv_pressure[max_temp_idx]
+    mean_sv_pressure = (sv_pressure_at_tmin + sv_pressure_at_tmax) / 2
 
-    # slope of sv pressure - temp curve (kPa/C)
-    # http://www.fao.org/3/X0490E/x0490e0k.htm
-    mean_sv_slope = (4098 * mean_sv_pressure) / (mean_temp + 237.3)**2
+    # vapor pressure deficit
+    e_s = (sv_pressure_at_tmin + sv_pressure_at_tmax) / 2
+    e_a = (sv_pressure_at_tmin * max_humidity / 100 \
+           + sv_pressure_at_tmax * min_humidity / 100) / 2
+    vp_deficit = e_s - e_a
 
-    # FAO Penman-Monteith
-    eto = (0.408 * mean_sv_slope * solar_rad \
-           + gamma * (900 / mean_temp + 273.3) \
-             * mean_wind_speed * mean_sv_pressure) \
-          / (mean_sv_slope + gamma * (1 + 0.34 * mean_wind_speed))
+    # saturation vapor pressure slope
+    vp_slope = 4098 * (0.6108 * np.exp((17.27 * mean_temp) / (mean_temp + 237.3))) \
+               / (mean_temp + 237.3)**2
+    
+    # radiation
+    J = int(275 * (month / 9) - 30 + day) - 2
+    if month < 3: J += 2
+    # TODO: actually check leap year
+    if year % 4 == 0 and month > 2: J += 1
+    d_r = 1 + 0.033 * np.cos(2 * np.pi / 365 * J)
+    sigma = 0.409 * np.sin(2 * np.pi / 365 * J - 1.39)
+    latitude_rad = np.pi / 180 * latitude
+    w_s = np.arccos(-np.tan(latitude_rad) * np.tan(sigma))
+    daylight_hours = (24 / np.pi) * w_s
+    R_a = ((24 * 60) / np.pi) * 0.0820 * d_r \
+          * (w_s * np.sin(latitude_rad) * np.sin(sigma) \
+             + np.cos(latitude_rad) * np.cos(sigma) * np.sin(w_s))
+    R_s = (0.25 + 0.50 * sunshine_hours / daylight_hours) * R_a
+    R_so = (0.75 + 2 * 1e-5 * altitude) * R_a
+    R_ns = (1 - 0.23) * R_s
+    sigma_min_temp = 4.903 * 1e-9 * (min_temp + 273.16)**4
+    sigma_max_temp = 4.903 * 1e-9 * (max_temp + 273.16)**4
+    R_nl = (sigma_min_temp + sigma_max_temp) / 2 * (0.34 - 0.14 * np.sqrt(e_a)) \
+           * (1.35 * R_s / R_so - 0.35)
+    R_n = R_ns - R_nl
+    G = 0
 
-    print(eto)
+    eto = (0.408 * vp_slope * (R_n - G) \
+           + gamma * 900 / (mean_temp + 273) * mean_wind_speed * vp_deficit) \
+          / \
+          (vp_slope + gamma * (1 + 0.34 * mean_wind_speed))
 
-    return float(eto)
+    return eto

@@ -17,24 +17,46 @@ class Heartbeat(BaseModel):
     wind_speed:    List[float]
     humidity:      List[float]
     precip:        List[float]
-    solar_rad:     List[float]
-    soil_moisture: List[float]
+    # soil_moisture: List[float]
+
+
+def get_station_loc(station_id):
+    stations_df = pd.read_csv("../data/stations.csv")
+    lat = stations_df.loc[stations_df['id'] == station_id, 'lat'].item()
+    lon = stations_df.loc[stations_df['id'] == station_id, 'lon'].item()
+    alt = stations_df.loc[stations_df['id'] == station_id, 'alt'].item()
+    return lat, lon, alt
 
 
 @app.post("/api/add")
 def read_item(hb: Heartbeat):
 
-    et = compute_eto(
-        temp       = hb.temp,
-        altitude   = -27,
-        wind_speed = hb.wind_speed,
-        humidity   = hb.humidity,
-        precip     = hb.precip,
-        solar_rad  = hb.solar_rad
-    )
+    try:
+        lat, _, alt = get_station_loc(hb.station_id)
+
+        # parse datetime
+        day = 6
+        month = 7
+        year = 2020
+
+        eto = compute_eto(
+            day        = day,
+            month      = month,
+            year       = year,
+            latitude   = lat,
+            altitude   = alt,
+            temp       = hb.temp,
+            wind_speed = hb.wind_speed,
+            humidity   = hb.humidity
+        )
+    except Exception as e:
+        print(e)
+        return {
+            "success": False
+        }
 
     return {
         "success": True,
-        "et": et,
-        "schedule": [0, 0]
+        "et": eto,
+        "schedule": [0,]
     }

@@ -82,7 +82,8 @@ def generate_stations(n_stations):
         'id': [random_id() for _ in range(n_stations)],
         'region': regions_df['name'].sample(n=n_stations, replace=True).to_numpy(),
         **latlon_df.reset_index(),
-    })
+        'alt': np.random.uniform(-30, 200, size=n_stations)
+    }).drop('index', axis='columns')
     return df
 
 
@@ -152,6 +153,7 @@ n_samples = 24
 
 # station names & locations
 stations_df = generate_stations(n_stations)
+# stations_df.to_csv(join(DATA_PATH, "stations.csv"), index=False)
 
 # last n_samples samples from station time series
 stations_data = {
