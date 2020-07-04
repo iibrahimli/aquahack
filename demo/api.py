@@ -25,11 +25,12 @@ class Heartbeat(BaseModel):
 def read_item(hb: Heartbeat):
 
     et = compute_eto(
-        hb.temp,
-        hb.wind_speed,
-        hb.humidity,
-        hb.precip,
-        hb.solar_rad
+        temp       = hb.temp,
+        altitude   = -27,
+        wind_speed = hb.wind_speed,
+        humidity   = hb.humidity,
+        precip     = hb.precip,
+        solar_rad  = hb.solar_rad
     )
 
     return {
