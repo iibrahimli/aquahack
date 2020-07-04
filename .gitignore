@@ -1,0 +1,4 @@
+.venv/
+.ssh/
+__pycache__/
+.streamlit/

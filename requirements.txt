@@ -1,0 +1,8 @@
+numpy
+pandas
+matplotlib
+streamlit
+jinja2
+fastapi
+unicorn
+pydantic
