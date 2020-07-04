@@ -149,7 +149,7 @@ def get_stations_avg(stations_df, stations_data):
 # ============= generate fake data =============
 
 n_stations = 12
-n_samples = 24
+n_samples = 24 * 7
 
 # station names & locations
 stations_df = generate_stations(n_stations)
@@ -228,6 +228,30 @@ selected_sensors = st.multiselect(
 # if empty, display all
 if not selected_sensors:
     selected_sensors = MEASUREMENT_LABELS
-st.line_chart(
-    selected_region_df[['dt'] + selected_sensors].set_index('dt'),
+
+# select datetime range
+dt_range = st.date_input(
+    "Select date range to plot",
+    value=[selected_region_df['dt'].min(), selected_region_df['dt'].max()],
+    min_value=selected_region_df['dt'].min(),
+    max_value=selected_region_df['dt'].max()
 )
+
+past_chart = st.empty()
+
+past_df = selected_region_df[['dt'] + selected_sensors].set_index('dt')
+
+dt_range = list(dt_range)
+if len(dt_range) < 2:
+    past_chart.markdown("Please select a valid date range (you can select "
+                        "the same day as start and end date)")
+else:
+    if dt_range[0] == dt_range[1]:
+        dt_range[1] += datetime.timedelta(days=1)
+
+    start_dt = past_df.index.get_loc(dt_range[0], method='nearest')
+    end_dt   = past_df.index.get_loc(dt_range[1], method='nearest')
+
+    past_chart.line_chart(
+        past_df.iloc[start_dt:end_dt],
+    )
