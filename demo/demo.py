@@ -222,7 +222,7 @@ selected_region_df = stations_data[selected_region_id]
 
 # select sensors
 selected_sensors = st.multiselect(
-    "Select measurements to plot",
+    "Select measurements to plot (default: all)",
     options=MEASUREMENT_LABELS,
 )
 # if empty, display all
