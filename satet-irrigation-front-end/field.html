@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+  <!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <link rel="icon" type="image/png" href="resources/img/favicon.ico" />
+      <link rel="stylesheet" href="./resources/css/index.css" />
+      <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
+        integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+        crossorigin=""
+      />
+
+      <script src="resources/lib/jquery.min.js"></script>
+      <script
+        src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
+        integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
+        crossorigin=""
+      ></script>
+
+      <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.2/leaflet.draw.css"
+      />
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.2/leaflet.draw.js"></script>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <script src="resources/lib/jquery.min.js"></script>
+      <script
+        type="text/javascript"
+        src="resources/lib/fusioncharts/js/fusioncharts.js"
+      ></script>
+      <script
+        type="text/javascript"
+        src="resources/lib/fusioncharts/js/themes/fusioncharts.theme.fusion.js"
+      ></script>
+
+      <title>Field | Satet Irrigation</title>
+    </head>
+    <body>
+      <div id="app">
+        <nav>
+          <div class="logo">
+            <img src="./resources/img/satet.png" class="logo-img" />
+          </div>
+          <div class="profile">
+            <button class="profile-btn">Nail Əmirov</button>
+          </div>
+        </nav>
+        <div class="body-wrapper">
+          <div
+            class="body"
+            style="display: block; width: 1000px; margin: 0 auto;"
+          >
+            <div id="swl-chart"></div>
+            <div id="weather-chart"></div>
+          </div>
+        </div>
+      </div>
+
+      <script
+        type="text/javascript"
+        language="javascript"
+        src="resources/js/weatherData.js"
+      ></script>
+      <script
+        type="text/javascript"
+        language="javascript"
+        src="resources/js/weatherChart.js"
+      ></script>
+      <script
+        type="text/javascript"
+        language="javascript"
+        src="resources/js/swlChart.js"
+      ></script>
+      <script>
+        (async () => {
+          await swlChart([
+            38.6652234,
+            48.8064696,
+            new Date(),
+            getStartOfNextDay(),
+            ["temp", "wind_speed", "humidity", "precipitation"],
+          ]);
+          await weatherChart(
+            [
+              38.6652234,
+              48.8064696,
+              new Date(),
+              getStartOfNextDay(),
+              [
+                "temp",
+                "humidity",
+                "surface_shortwave_radiation",
+                "wind_speed",
+                "precipitation",
+              ],
+            ],
+            [
+              { field: "temp", name: "Temperatur", suffix: " C" },
+              { field: "humidity", name: "Rütubət", suffix: "%" },
+              { field: "wind_speed", name: "Külək sürəti", suffix: " m/s" },
+              {
+                field: "surface_shortwave_radiation",
+                name: "Günəş şüası",
+                suffix: " w/sqm",
+              },
+              { field: "precipitation", name: "Yağış", suffix: " mm/hr" },
+            ]
+          );
+        })();
+      </script>
+    </body>
+  </html>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link rel="icon" type="image/png" href="resources/img/favicon.ico" />
+    <link rel="stylesheet" href="./resources/css/index.css" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
+      integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+      crossorigin=""
+    />
+
+    <script src="resources/lib/jquery.min.js"></script>
+    <script
+      src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
+      integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
+      crossorigin=""
+    ></script>
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.2/leaflet.draw.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.2/leaflet.draw.js"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Home | Satet Irrigation</title>
+  </head>
+  <body>
+    <div id="app">
+      <nav>
+        <div class="logo">
+          <img src="./resources/img/satet.png" class="logo-img" />
+        </div>
+        <div class="profile">
+          <button class="profile-btn">Nail Əmirov</button>
+        </div>
+      </nav>
+      <div class="body-wrapper">
+        <div class="body">
+          <div class="fields-col">
+            <div class="fields-spacer"></div>
+            <div class="fields-wrapper">
+              <div class="curr-fields">
+                <div class="field">Limon #1</div>
+                <div class="field">Çay #1</div>
+                <div class="field">Çay #2</div>
+              </div>
+              <div class="fields-btn">
+                <button id="add-field">+ yeni sahə əlavə edin</button>
+              </div>
+            </div>
+          </div>
+          <div class="map-col">
+            <div class="map-title">Sizin Sahələriniz</div>
+            <div id="map"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Initialization
+      const mapId = "map";
+      const map = L.map(mapId).setView([38.6648, 48.8065], 13);
+
+      L.tileLayer("http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}", {
+        maxZoom: 19,
+        subdomains: ["mt0", "mt1", "mt2", "mt3"],
+      }).addTo(map);
+    </script>
+    <script
+      type="text/javascript"
+      language="javascript"
+      src="resources/js/addFields.js"
+    ></script>
+    <script
+      type="text/javascript"
+      language="javascript"
+      src="resources/js/drawControls.js"
+    ></script>
+    <script
+      type="text/javascript"
+      language="javascript"
+      src="resources/js/weatherData.js"
+    ></script>
+  </body>
+</html>
